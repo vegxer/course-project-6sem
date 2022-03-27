@@ -44,7 +44,10 @@ public class OtzovikParser {
         try {
             jsonWriter = new JsonWriter(new FileWriter(outputPath));
             jsonWriter.beginArray();
-            logger.debug("Парсинг стартовал");
+            logger.debug(String.format("Парсинг стартовал. Примерное время ожидания %.2f - %.2f мин.",
+                0.7 * moviesCount * reviewsPerMovie / 60,
+                0.8 * moviesCount * reviewsPerMovie / 60)
+            );
             for (int page = 1; moviesCount > 0; ++page) {
                 final String referer = headers.get("referer");
                 headers.put("referer", referer.substring(referer.lastIndexOf('=') + 1) + page);
