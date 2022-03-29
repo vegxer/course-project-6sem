@@ -17,8 +17,10 @@ public class Main {
         final int minimumReviewsPerMovie = getNumberFromInput(scanner);
         System.out.print("Путь для сохранения результатов: ");
         final String path = scanner.nextLine();
+        System.out.print("Путь для сохрананения статистики полученных данных: ");
+        final String statisticsPath = scanner.nextLine();
 
-        OtzovikParser.parse(filmsCount, reviewsPerMovie, minimumReviewsPerMovie, path);
+        OtzovikParser.parse(filmsCount, reviewsPerMovie, minimumReviewsPerMovie, path, statisticsPath);
     }
 
     public static int getNumberFromInput(final Scanner scanner) {
