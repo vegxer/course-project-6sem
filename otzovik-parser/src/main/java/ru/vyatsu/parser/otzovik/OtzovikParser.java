@@ -56,8 +56,8 @@ public class OtzovikParser {
             testWriter = new JsonWriter(new FileWriter(testOutputPath));
             testWriter.beginArray();
             logger.debug(String.format("Парсинг стартовал. Примерное время ожидания %.2f - %.2f мин.",
-                0.7 * moviesCount * reviewsPerMovie / 60,
-                0.8 * moviesCount * reviewsPerMovie / 60)
+                0.8 * moviesCount * reviewsPerMovie / 60,
+                0.9 * moviesCount * reviewsPerMovie / 60)
             );
             for (int page = 1; moviesCount > 0; ++page) {
                 final String referer = headers.get("referer");
@@ -135,7 +135,7 @@ public class OtzovikParser {
     private static void parseReviewsPage(final String url, final Map<String, String> headers, int reviewsPerMovie,
                                          final JsonWriter trainWriter, final JsonWriter testWriter,
                                          final Statistics trainStatistics, final Statistics testStatistics) throws IOException, InterruptedException {
-        String refererBase = "https://otzovik.com" + url;
+        final String refererBase = "https://otzovik.com" + url;
         logger.debug(String.format("\tПарсинг страницы %s", refererBase));
         headers.put("referer", refererBase + "1/");
 
