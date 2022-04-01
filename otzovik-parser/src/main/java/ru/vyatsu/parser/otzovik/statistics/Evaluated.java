@@ -50,8 +50,11 @@ public class Evaluated {
     }
 
     public Double getAverage() {
-        return (oneStarsCount + 2 * threeStarsCount + 3 * threeStarsCount + 4 * fourStarsCount + 5 * fiveStarsCount) /
-            (double) (oneStarsCount + twoStarsCount + threeStarsCount + fourStarsCount + fiveStarsCount);
+        double sum = oneStarsCount + twoStarsCount + threeStarsCount + fourStarsCount + fiveStarsCount;
+        if (sum == 0) {
+            return null;
+        }
+        return (oneStarsCount + 2 * threeStarsCount + 3 * threeStarsCount + 4 * fourStarsCount + 5 * fiveStarsCount) / sum;
     }
 
     public Integer getMedian() {

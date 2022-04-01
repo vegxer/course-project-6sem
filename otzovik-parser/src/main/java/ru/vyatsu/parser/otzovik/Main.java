@@ -15,12 +15,19 @@ public class Main {
         final int reviewsPerMovie = getNumberFromInput(scanner);
         System.out.print("При сборе брать фильмы с количеством отзывов от: ");
         final int minimumReviewsPerMovie = getNumberFromInput(scanner);
-        System.out.print("Путь для сохранения результатов: ");
-        final String path = scanner.nextLine();
-        System.out.print("Путь для сохрананения статистики полученных данных: ");
-        final String statisticsPath = scanner.nextLine();
+        System.out.print("Путь для сохранения тренировочного датасета: ");
+        final String trainPath = scanner.nextLine();
+        System.out.print("Путь для сохрананения статистики тренировочного датасета: ");
+        final String trainStatisticsPath = scanner.nextLine();
+        System.out.print("Путь для сохранения тестового датасета: ");
+        final String testPath = scanner.nextLine();
+        System.out.print("Путь для сохрананения статистики тестового датасета: ");
+        final String testStatisticsPath = scanner.nextLine();
 
-        OtzovikParser.parse(filmsCount, reviewsPerMovie, minimumReviewsPerMovie, path, statisticsPath);
+        OtzovikParser.parse(filmsCount, reviewsPerMovie, minimumReviewsPerMovie,
+            trainPath, trainStatisticsPath,
+            testPath, testStatisticsPath
+        );
     }
 
     public static int getNumberFromInput(final Scanner scanner) {
