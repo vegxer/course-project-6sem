@@ -9,44 +9,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyatsu.parser.otzovik.statistics.Statistics;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.awt.*;
+import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class OtzovikParser {
     private static boolean endedTrain = true;
     private static boolean endedTest = true;
     private static final Logger logger = LoggerFactory.getLogger(OtzovikParser.class);
     private static final String url = "https://otzovik.com/show_filter.php?cat_id=117&order=rate&f[r]=%d_&page=%d";
-    private static final String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.52";
+    private static Map<String,String> additionalEntries;
 
     public static void parse(int moviesCount, final int reviewsPerMovie, final int minimumReviewsPerMovie,
                              final String trainOutputPath, final String trainDatasetStatisticsPath,
                              final String testOutputPath, final String testDatasetStatisticsPath) throws IOException {
+        additionalEntries = Map.of("referer", String.format("https://otzovik.com/show_filter.php?cat_id=117&order=date_desc&f[r]=%d_&page=", minimumReviewsPerMovie));
         final Statistics trainStatistics = new Statistics();
         trainStatistics.type = "train";
         final Statistics testStatistics = new Statistics();
         testStatistics.type = "test";
-        final Map<String, String> headers = new HashMap<>(
-            Map.of("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                "accept-encoding", "gzip, deflate, br",
-                "accept-language", "en-US,en;q=0.9",
-                "cache-control", "max-age=0",
-                "cookie", "refreg=1647354570~https://yandex.ru/; pr_form=advanced; yec=1; ROBINBOBIN=17a36f2f17612223dabd201172; ssid=1917017681",
-                "referer", String.format("https://otzovik.com/show_filter.php?cat_id=117&order=date_desc&f[r]=%d_&page=", minimumReviewsPerMovie)
-            ));
-        headers.putAll(Map.of(
-            "sec-ch-ua", "\"Opera GX\";v=\"83\", \"Chromium\";v=\"97\", \";Not A Brand\";v=\"99\"",
-            "sec-ch-ua-mobile", "?0",
-            "sec-ch-ua-platform", "Windows",
-            "sec-fetch-dest", "document",
-            "sec-fetch-mode", "navigate",
-            "sec-fetch-site", "same-origin",
-            "sec-fetch-user", "?1",
-            "upgrade-insecure-requests", "1",
-            "user-agent", userAgent
-        ));
+        Map<String, String> headers = readHeaders();
 
         JsonWriter trainWriter = null;
         JsonWriter testWriter = null;
@@ -56,8 +41,8 @@ public class OtzovikParser {
             testWriter = new JsonWriter(new FileWriter(testOutputPath));
             testWriter.beginArray();
             logger.debug(String.format("Парсинг стартовал. Примерное время ожидания %.2f - %.2f мин.",
-                0.8 * moviesCount * reviewsPerMovie / 60,
-                0.9 * moviesCount * reviewsPerMovie / 60)
+                0.75 * moviesCount * reviewsPerMovie / 60,
+                0.85 * moviesCount * reviewsPerMovie / 60)
             );
             for (int page = 1; moviesCount > 0; ++page) {
                 final String referer = headers.get("referer");
@@ -66,13 +51,13 @@ public class OtzovikParser {
                 try {
                     doc = Jsoup.connect(String.format(url, minimumReviewsPerMovie, page))
                         .timeout(5000)
-                        .userAgent(userAgent)
                         .ignoreContentType(true)
                         .method(Connection.Method.GET)
                         .maxBodySize(Integer.MAX_VALUE)
                         .headers(headers)
                         .get();
                 } catch (Exception e) {
+                    ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
                     if (!endedTrain) {
                         trainWriter.endObject();
@@ -82,7 +67,9 @@ public class OtzovikParser {
                         testWriter.endObject();
                         endedTest = true;
                     }
+                    ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     Thread.sleep(60000);
+                    headers = readHeaders();
                     continue;
                 }
                 Thread.sleep(600);
@@ -105,6 +92,7 @@ public class OtzovikParser {
                             trainStatistics,
                             testStatistics);
                     } catch (Exception exc) {
+                        ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                         logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
                         if (!endedTrain) {
                             trainWriter.endObject();
@@ -114,7 +102,9 @@ public class OtzovikParser {
                             testWriter.endObject();
                             endedTest = true;
                         }
+                        ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                         Thread.sleep(60000);
+                        headers = readHeaders();
                     }
                 }
                 moviesCount -= size;
@@ -132,7 +122,7 @@ public class OtzovikParser {
         }
     }
 
-    private static void parseReviewsPage(final String url, final Map<String, String> headers, int reviewsPerMovie,
+    private static void parseReviewsPage(final String url, Map<String, String> headers, int reviewsPerMovie,
                                          final JsonWriter trainWriter, final JsonWriter testWriter,
                                          final Statistics trainStatistics, final Statistics testStatistics) throws IOException, InterruptedException {
         final String refererBase = "https://otzovik.com" + url;
@@ -143,7 +133,6 @@ public class OtzovikParser {
             headers.put("referer", refererBase + page + "/");
             final Document doc = Jsoup.connect(refererBase + page)
                 .timeout(5000)
-                .userAgent(userAgent)
                 .ignoreContentType(true)
                 .method(Connection.Method.GET)
                 .maxBodySize(Integer.MAX_VALUE)
@@ -179,7 +168,7 @@ public class OtzovikParser {
                     } else {
                         --testStatistics.moviesCount;
                     }
-
+                    ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
                     if (!endedTrain) {
                         trainWriter.endObject();
@@ -189,7 +178,9 @@ public class OtzovikParser {
                         testWriter.endObject();
                         endedTest = true;
                     }
+                    ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     Thread.sleep(60000);
+                    headers = readHeaders();
                 }
             }
         }
@@ -199,7 +190,6 @@ public class OtzovikParser {
                                            final JsonWriter jsonWriter, final Statistics statistics) throws IOException, InterruptedException {
         final Document review = Jsoup.connect("https://otzovik.com" + url)
             .timeout(5000)
-            .userAgent(userAgent)
             .ignoreContentType(true)
             .method(Connection.Method.GET)
             .maxBodySize(Integer.MAX_VALUE)
@@ -316,5 +306,22 @@ public class OtzovikParser {
                 logger.error("Не удалось корректно закончить файл", writerExc);
             }
         }
+    }
+
+    private static Map<String, String> readHeaders() throws IOException {
+        List<String> fileLines;
+        try (final BufferedReader reader = new BufferedReader(new FileReader("headers.txt"))) {
+            fileLines = reader.lines().collect(Collectors.toList());
+        }
+        HashMap<String, String> headers = new HashMap<>();
+        for (final String line : fileLines) {
+            if ("throwException".equals(line)) {
+                throw new IllegalArgumentException();
+            }
+            final String[] split = line.split("\\|");
+            headers.put(split[0], split[1]);
+        }
+        headers.putAll(additionalEntries);
+        return headers;
     }
 }
