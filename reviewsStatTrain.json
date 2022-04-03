@@ -1,0 +1,81 @@
+{
+  "moviesProcessed": 9934,
+  "minuses": {
+    "average": 35.54167505536541,
+    "min": 3,
+    "max": 254,
+    "median": 51
+  },
+  "pluses": {
+    "average": 31.89561103281659,
+    "min": 3,
+    "max": 245,
+    "median": 46
+  },
+  "body": {
+    "average": 1748.869438292732,
+    "min": 125,
+    "max": 22936,
+    "median": 2113
+  },
+  "rating": {
+    "oneStarCount": 1242,
+    "twoStarCount": 1968,
+    "threeStarCount": 3353,
+    "fourStarCount": 2193,
+    "fiveStarCount": 1178,
+    "moda": 3,
+    "median": 3,
+    "average": 3.288604791624723
+  },
+  "actors": {
+    "oneStarCount": 1141,
+    "twoStarCount": 1426,
+    "threeStarCount": 2783,
+    "fourStarCount": 2467,
+    "fiveStarCount": 2117,
+    "moda": 3,
+    "median": 3,
+    "average": 3.57449164485605
+  },
+  "music": {
+    "oneStarCount": 1148,
+    "twoStarCount": 1459,
+    "threeStarCount": 2997,
+    "fourStarCount": 2416,
+    "fiveStarCount": 1914,
+    "moda": 3,
+    "median": 3,
+    "average": 3.5601973021944837
+  },
+  "originality": {
+    "oneStarCount": 1586,
+    "twoStarCount": 1899,
+    "threeStarCount": 2961,
+    "fourStarCount": 2031,
+    "fiveStarCount": 1457,
+    "moda": 3,
+    "median": 3,
+    "average": 3.2011274411113346
+  },
+  "spectacularity": {
+    "oneStarCount": 1347,
+    "twoStarCount": 1771,
+    "threeStarCount": 3067,
+    "fourStarCount": 2164,
+    "fiveStarCount": 1585,
+    "moda": 3,
+    "median": 3,
+    "average": 3.3483994362794443
+  },
+  "plot": {
+    "oneStarCount": 1469,
+    "twoStarCount": 1824,
+    "threeStarCount": 3069,
+    "fourStarCount": 2149,
+    "fiveStarCount": 1423,
+    "moda": 3,
+    "median": 3,
+    "average": 3.2741091201932755
+  }
+}
