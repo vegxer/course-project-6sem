@@ -3,6 +3,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 from keras.layers.embeddings import Embedding
+from keras import metrics
 
 from reviews_loader import load_dataset
 
@@ -23,7 +24,7 @@ if __name__ == "__main__":
     rnn.add(Dense(units=5, activation='sigmoid'))
     rnn.compile(optimizer='adam',
                 loss='categorical_crossentropy',
-                metrics=['accuracy'])
+                metrics=[metrics.Accuracy(), metrics.Precision(), metrics.Recall()])
     rnn.summary()
     rnn.fit(X_train, y_train, epochs=10, batch_size=32,
             validation_data=(X_val, y_val))
