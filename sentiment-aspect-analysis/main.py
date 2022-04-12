@@ -31,6 +31,7 @@ if __name__ == "__main__":
     rnn.summary()
     rnn.fit(X_train, y_train, epochs=15, batch_size=32,
             validation_data=(X_val, y_val))
+    rnn.save('model')
     results = rnn.evaluate(X_test, y_test)
     print("Results: ")
     print(results)
