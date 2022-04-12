@@ -4,10 +4,13 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 from keras.layers.embeddings import Embedding
 from keras import metrics
+from datetime import datetime
 
 from reviews_loader import load_dataset
 
 if __name__ == "__main__":
+    print("Time of start: " + datetime.now().strftime("%H:%M:%S"))
+
     X_train, y_train = load_dataset("../reviewsTrain.json")
     X_test, y_test = load_dataset("../reviewsTest.json")
 
@@ -26,8 +29,10 @@ if __name__ == "__main__":
                 loss='categorical_crossentropy',
                 metrics=[metrics.Accuracy(), metrics.Precision(), metrics.Recall()])
     rnn.summary()
-    rnn.fit(X_train, y_train, epochs=10, batch_size=32,
+    rnn.fit(X_train, y_train, epochs=15, batch_size=32,
             validation_data=(X_val, y_val))
     results = rnn.evaluate(X_test, y_test)
     print("Results: ")
     print(results)
+
+    print("Time of end: " + datetime.now().strftime("%H:%M:%S"))
