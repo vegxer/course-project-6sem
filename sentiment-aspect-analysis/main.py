@@ -5,6 +5,7 @@ from keras.layers import Dense, LSTM
 from keras.layers.embeddings import Embedding
 from keras import metrics
 from datetime import datetime
+from keras.callbacks import ModelCheckpoint
 
 from reviews_loader import load_dataset
 
@@ -14,14 +15,14 @@ if __name__ == "__main__":
     X_train, y_train = load_dataset("../reviewsTrain.json")
     X_test, y_test = load_dataset("../reviewsTest.json")
 
-    words_per_review = 350
+    words_per_review = 300
 
     X_train = pad_sequences(X_train, maxlen=words_per_review)
     X_test = pad_sequences(X_test, maxlen=words_per_review)
     X_test, X_val, y_test, y_val = train_test_split(
         X_test, y_test, random_state=11, test_size=0.20)
     rnn = Sequential()
-    rnn.add(Embedding(input_dim=15000, output_dim=128,
+    rnn.add(Embedding(input_dim=10000, output_dim=128,
                       input_length=words_per_review))
     rnn.add(LSTM(units=128, dropout=0.2, recurrent_dropout=0.2))
     rnn.add(Dense(units=5, activation='sigmoid'))
@@ -29,8 +30,13 @@ if __name__ == "__main__":
                 loss='categorical_crossentropy',
                 metrics=[metrics.Accuracy(), metrics.Precision(), metrics.Recall()])
     rnn.summary()
+    chkpt = ModelCheckpoint('best_model',
+                            monitor='val_loss',
+                            verbose=1,
+                            save_best_only=True,
+                            mode='auto')
     rnn.fit(X_train, y_train, epochs=15, batch_size=32,
-            validation_data=(X_val, y_val))
+            validation_data=(X_val, y_val), callbacks=[chkpt])
     rnn.save('model')
     results = rnn.evaluate(X_test, y_test)
     print("Results: ")
