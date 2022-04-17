@@ -11,9 +11,11 @@ from reviews_loader import load_dataset
 
 if __name__ == "__main__":
     print("Time of start: " + datetime.now().strftime("%H:%M:%S"))
-
-    X_train, y_train = load_dataset("../reviewsTrain.json")
     X_test, y_test = load_dataset("../reviewsTest.json")
+    X_dataset, y_dataset = load_dataset("../reviewsTrain.json")
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_dataset, y_dataset, random_state=11, test_size=0.3)
 
     words_per_review = 300
 
