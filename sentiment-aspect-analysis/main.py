@@ -8,12 +8,12 @@ from datetime import datetime
 from keras.callbacks import ModelCheckpoint
 
 from reviews_loader import load_dataset
+from reviews_loader import generate_dataset
 
 if __name__ == "__main__":
     print("Time of start: " + datetime.now().strftime("%H:%M:%S"))
-    X_test, y_test = load_dataset("../reviewsTest.json")
-    X_dataset, y_dataset = load_dataset("../reviewsTrain.json")
 
+    X_dataset, y_dataset = load_dataset("processed_dataset.txt")
     X_train, X_test, y_train, y_test = train_test_split(
         X_dataset, y_dataset, random_state=11, test_size=0.3)
 
@@ -24,20 +24,21 @@ if __name__ == "__main__":
     X_test, X_val, y_test, y_val = train_test_split(
         X_test, y_test, random_state=11, test_size=0.20)
     rnn = Sequential()
-    rnn.add(Embedding(input_dim=10000, output_dim=128,
+    rnn.add(Embedding(input_dim=28704, output_dim=128,
                       input_length=words_per_review))
-    rnn.add(LSTM(units=128, dropout=0.2, recurrent_dropout=0.2))
+    rnn.add(LSTM(units=128, dropout=0.2, recurrent_dropout=0.25))
     rnn.add(Dense(units=5, activation='sigmoid'))
     rnn.compile(optimizer='adam',
                 loss='categorical_crossentropy',
-                metrics=[metrics.Accuracy(), metrics.Precision(), metrics.Recall()])
+                metrics=[metrics.Accuracy(), metrics.Precision(), metrics.Recall(), metrics.CategoricalAccuracy(),
+                         metrics.CategoricalCrossentropy(), metrics.MeanSquaredError()])
     rnn.summary()
     chkpt = ModelCheckpoint('best_model',
                             monitor='val_loss',
                             verbose=1,
                             save_best_only=True,
                             mode='auto')
-    rnn.fit(X_train, y_train, epochs=15, batch_size=32,
+    rnn.fit(X_train, y_train, epochs=25, batch_size=32,
             validation_data=(X_val, y_val), callbacks=[chkpt])
     rnn.save('model')
     results = rnn.evaluate(X_test, y_test)
