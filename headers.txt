@@ -2,7 +2,7 @@ accept|text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/ap
 accept-encoding|gzip, deflate, br
 accept-language|en-US,en;q=0.9
 cache-control|max-age=0
-cookie|refreg=1648749448~http://otzovik.com/; _ym_d=1648749450; _ym_uid=1648749450728075788; __gads=ID=47c3a8ff259f4cc7-223b83e109d2007d:T=1648914847:RT=1648914847:S=ALNI_MYuc0Z4UKdQmc0r1w7Qr6-sBKariA; _ym_isad=2; ssid=152336368; ROBINBOBIN=a345877be7abb17d053a7ebb15
+cookie|refreg=1647354570~https://yandex.ru/; pr_form=advanced; yec=1; ext_uid=625e6b890008a605645641; gxvoid=625e6b890008a605645641; lastmenu=4; ROBINBOBIN=0090c7f8def6477c74592d4bd3; ssid=1350745360
 sec-ch-ua|" Not A;Brand";v="99", "Chromium";v="98", "Opera GX";v="84"
 sec-ch-ua-mobile|?0
 sec-ch-ua-platform|Windows
@@ -11,4 +11,4 @@ sec-fetch-mode|navigate
 sec-fetch-site|same-origin
 sec-fetch-user|?1
 upgrade-insecure-requests|1
-user-agent|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36 Edg/99.0.1150.55
+user-agent|Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 OPR/85.0.4341.72

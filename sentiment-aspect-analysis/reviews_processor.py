@@ -1,13 +1,10 @@
 import json
 import random
 import re
-
 import numpy
 import spacy
 from joblib import Parallel, delayed
 from keras.utils.np_utils import to_categorical
-
-nlp = spacy.load("ru_core_news_sm")
 
 
 def get_list_of_reviews_and_y_res(reviews):
@@ -23,6 +20,7 @@ def get_list_of_reviews_and_y_res(reviews):
 
 
 def pos_tag_review(review):
+    nlp = spacy.load("ru_core_news_sm")
     tagged = []
     tokens = nlp(review)
     for token in tokens:
@@ -30,8 +28,8 @@ def pos_tag_review(review):
     return tagged
 
 
-def pos_tag_reviews(reviews):
-    return Parallel(n_jobs=10)(delayed(pos_tag_review)(review) for review in reviews)
+def pos_tag_reviews(reviews, threads_num):
+    return Parallel(n_jobs=threads_num)(delayed(pos_tag_review)(review) for review in reviews)
 
 
 def clean_review(review):
@@ -42,8 +40,8 @@ def clean_review(review):
     return cleaned_review
 
 
-def clean_reviews(reviews):
-    return Parallel(n_jobs=10)(delayed(clean_review)(review) for review in reviews)
+def clean_reviews(reviews, threads_num):
+    return Parallel(n_jobs=threads_num)(delayed(clean_review)(review) for review in reviews)
 
 
 def cut_reviews(reviews, length):
@@ -78,9 +76,9 @@ def parallel_encode(review, dictionary):
     return encoded
 
 
-def encode_frequent(reviews):
+def encode_frequent(reviews, threads_num):
     dictionary = create_sorted_dictionary(reviews)
-    encoded_reviews = Parallel(n_jobs=10)(delayed(parallel_encode)(review, dictionary) for review in reviews)
+    encoded_reviews = Parallel(n_jobs=threads_num)(delayed(parallel_encode)(review, dictionary) for review in reviews)
     return len(dictionary), encoded_reviews
 
 
@@ -99,30 +97,30 @@ def write_to_file(X_res, y_res, save_path):
             save_file.write("\n")
 
 
-def generate_dataset(path_to_dataset, save_path):
-    with open(path_to_dataset, "r", encoding="utf-8") as dataset:
+def generate_dataset(path_to_text_dataset, path_to_save_numeric_dataset, threads_num, review_length=300):
+    with open(path_to_text_dataset, "r", encoding="utf-8") as dataset:
         processed_reviews, y_res = get_list_of_reviews_and_y_res(json.load(dataset))
-    processed_reviews = pos_tag_reviews(processed_reviews)
-    processed_reviews = clean_reviews(processed_reviews)
-    processed_reviews = cut_reviews(processed_reviews, 300)
-    vocabulary_size, X_res = encode_frequent(processed_reviews)
+    processed_reviews = pos_tag_reviews(processed_reviews, threads_num)
+    processed_reviews = clean_reviews(processed_reviews, threads_num)
+    processed_reviews = cut_reviews(processed_reviews, review_length)
+    vocabulary_size, X_res = encode_frequent(processed_reviews, threads_num)
     print("Vocab size: " + str(vocabulary_size))
 
     zipped = list(zip(X_res, y_res))
     random.shuffle(zipped)
     X_res, y_res = zip(*zipped)
 
-    write_to_file(X_res, y_res, save_path)
+    write_to_file(X_res, y_res, path_to_save_numeric_dataset)
 
 
-def load_dataset(path_to_dataset):
+def load_dataset(path_to_numeric_dataset):
     X_res = []
     y_res = []
     x = True
-    with open(path_to_dataset, "r", encoding="utf-8") as dataset:
+    with open(path_to_numeric_dataset, "r", encoding="utf-8") as dataset:
         for line in dataset:
             if line == '\n':
-                if x:
+                if not x:
                     print("Ошибка чтения файла")
                 x = False
                 continue
@@ -131,3 +129,20 @@ def load_dataset(path_to_dataset):
             else:
                 y_res.append([int(element[0]) for element in re.findall('\\d\\.\\d', line)])
     return numpy.asarray(X_res), numpy.asarray(y_res)
+
+
+def index_of_max(predicts):
+    index = 0
+    for k in range(len(predicts)):
+        if predicts[k] > predicts[index]:
+            index = k
+    return index
+
+
+def get_model_accuracy(model, X_test, y_test):
+    predictions = model.predict(X_test)
+    correct_count = 0
+    for i in range(len(predictions)):
+        if index_of_max(predictions[i]) == index_of_max(y_test[i]):
+            correct_count += 1
+    return correct_count / len(X_test)

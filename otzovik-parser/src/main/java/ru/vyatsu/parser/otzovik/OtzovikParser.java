@@ -129,7 +129,7 @@ public class OtzovikParser {
         logger.debug(String.format("\tПарсинг страницы %s", refererBase));
         headers.put("referer", refererBase + "1/");
 
-        for (int page = 1; reviewsPerMovie > 0; ++page) {
+        for (int page = 2; reviewsPerMovie > 0; ++page) {
             headers.put("referer", refererBase + page + "/");
             final Document doc = Jsoup.connect(refererBase + page)
                 .timeout(5000)
