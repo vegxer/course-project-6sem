@@ -1,19 +1,40 @@
 from keras import models
+from joblib import Parallel, delayed
+from reviews_processor import read_dictionary, digitize_reviews_to_predict, index_of_max
 
-from keras.preprocessing.sequence import pad_sequences
+path_to_reviews = "text_reviews/test.json"
+path_to_dictionary = "dictionary.txt"
+threads_num = 10
+grade_scale = 3
 
-from reviews_processor import generate_dataset, load_dataset, get_model_accuracy
+plot_model = models.load_model("grade_{grade_scale}/models/plot_best".format(grade_scale=grade_scale))
+music_model = models.load_model("grade_{grade_scale}/models/music_best".format(grade_scale=grade_scale))
+actors_model = models.load_model("grade_{grade_scale}/models/actors_best".format(grade_scale=grade_scale))
+originality_model = models.load_model("grade_{grade_scale}/models/originality_best".format(grade_scale=grade_scale))
+spectacularity_model = models.load_model("grade_{grade_scale}/models/spectacularity_best".format(grade_scale=grade_scale))
+
+
+def predict(reviews):
+    plot_predictions = plot_model.predict(reviews)
+    music_predictions = music_model.predict(reviews)
+    actors_predictions = actors_model.predict(reviews)
+    originality_predictions = originality_model.predict(reviews)
+    spectacularity_predictions = spectacularity_model.predict(reviews)
+
+    res = []
+    for i in range(len(plot_predictions)):
+        res.append({
+            "plot": index_of_max(plot_predictions[i]) + 1,
+            "music": index_of_max(music_predictions[i]) + 1,
+            "actors": index_of_max(actors_predictions[i]) + 1,
+            "originality": index_of_max(originality_predictions[i]) + 1,
+            "spectacularity": index_of_max(spectacularity_predictions[i]) + 1,
+        })
+
+    return res
 
 
 if __name__ == "__main__":
-    model = models.load_model("model")
-    choice = input("1 - Текстовый датасет\n2 - Оцифрованный датасет\nВаш выбор: ")
-    path = input("Введите путь датасета: ")
-    if choice == 1:
-        generate_dataset(path, "1.txt", 8)
-        X_test, y_test = load_dataset("1.txt")
-    else:
-        X_test, y_test = load_dataset(path)
-    words_per_review = 300
-    X_test = pad_sequences(X_test, maxlen=words_per_review)
-    print("Точность модели: " + str(get_model_accuracy(model, X_test, y_test)))
+    dictionary = read_dictionary(path_to_dictionary)
+    dataset = digitize_reviews_to_predict(path_to_reviews, dictionary, 250, threads_num)
+    print(predict(dataset))

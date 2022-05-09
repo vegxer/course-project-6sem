@@ -119,7 +119,8 @@ def get_list_of_reviews_and_y_res(reviews, aspect, grade_scale):
     corrupted_reviews = 0
     for review in reviews:
         try:
-            review_text = 'рекомендация: ' + review['recommend'] + "\n\n" + \
+            review_text = 'оценка: ' + str(review['rating']) + "\n\n" + \
+                          'рекомендация: ' + review['recommend'] + "\n\n" + \
                           "достоинства: " + review['plus'].lower() + "\n\n" + \
                           "недостатки: " + review['minus'].lower() + "\n\n" + \
                           "отзыв: " + review['body'].lower()
@@ -129,6 +130,23 @@ def get_list_of_reviews_and_y_res(reviews, aspect, grade_scale):
             corrupted_reviews += 1
     print("Повреждённых отзывов: " + str(corrupted_reviews))
     return processed_reviews, y_res
+
+
+def get_list_of_reviews(reviews):
+    processed_reviews = []
+    corrupted_reviews = 0
+    for review in reviews:
+        try:
+            review_text = (('оценка: ' + str(review['rating']) + "\n\n") if 'rating' in review else '') + \
+                          (('рекомендация: ' + review['recommend'] + "\n\n") if 'recommend' in review else '') + \
+                          (("достоинства: " + review['plus'].lower() + "\n\n") if 'plus' in review else '') + \
+                          (("недостатки: " + review['minus'].lower() + "\n\n") if 'minus' in review else '') + \
+                          "отзыв: " + review['body'].lower()
+            processed_reviews.append(review_text)
+        except Exception:
+            corrupted_reviews += 1
+    print("Некорректных отзывов: " + str(corrupted_reviews))
+    return processed_reviews
 
 
 def pos_tag_review(review):
@@ -241,7 +259,7 @@ def generate_dataset(path_to_text_dataset, path_to_save_numeric_dataset, aspect,
     X_res, y_res = zip(*zipped)
 
     write_to_file(X_res, y_res, path_to_save_numeric_dataset)
-    # save_dictionary("dictionary.txt", dictionary)
+    save_dictionary("dictionary.txt", dictionary)
 
 
 def digitize_reviews(reviews, dictionary):
@@ -259,8 +277,18 @@ def load_text_dataset(path_to_text_dataset, dictionary, review_length, aspect, g
         processed_reviews, y_res = get_list_of_reviews_and_y_res(json.load(dataset), aspect, grade_scale)
     processed_reviews = pos_tag_reviews_unpossed(processed_reviews, threads_num)
     processed_reviews = digitize_reviews(processed_reviews, dictionary)
-    processed_reviews = pad_sequences(numpy.asarray(processed_reviews), maxlen=review_length)
+    processed_reviews = cut_reviews(processed_reviews, review_length)
     return processed_reviews, y_res
+
+
+def digitize_reviews_to_predict(path_to_text_dataset: str, dictionary: dict, review_length: int, threads_num: int):
+    with open(path_to_text_dataset, "r", encoding="utf-8") as dataset:
+        processed_reviews = get_list_of_reviews(json.load(dataset))
+    processed_reviews = pos_tag_reviews_unpossed(processed_reviews, threads_num)
+    processed_reviews = digitize_reviews(processed_reviews, dictionary)
+    processed_reviews = cut_reviews(processed_reviews, review_length)
+    processed_reviews = pad_sequences(processed_reviews, maxlen=review_length)
+    return processed_reviews
 
 
 def read_dictionary(path):
@@ -287,7 +315,7 @@ def load_dataset(path_to_numeric_dataset):
                 X_res.append([int(element) for element in re.findall('\\d+', line)])
             else:
                 y_res.append([int(element[0]) for element in re.findall('\\d\\.\\d', line)])
-    return numpy.asarray(X_res), numpy.asarray(y_res)
+    return X_res, y_res
 
 
 def index_of_max(predicts):
