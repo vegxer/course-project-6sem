@@ -1,7 +1,6 @@
 import json
 import random
 import re
-import numpy
 import spacy
 from joblib import Parallel, delayed
 from keras.preprocessing.sequence import pad_sequences
@@ -281,7 +280,7 @@ def load_text_dataset(path_to_text_dataset, dictionary, review_length, aspect, g
     return processed_reviews, y_res
 
 
-def digitize_reviews_to_predict(path_to_text_dataset: str, dictionary: dict, review_length: int, threads_num: int):
+def load_reviews_dataset(path_to_text_dataset: str, dictionary: dict, review_length: int, threads_num: int):
     with open(path_to_text_dataset, "r", encoding="utf-8") as dataset:
         processed_reviews = get_list_of_reviews(json.load(dataset))
     processed_reviews = pos_tag_reviews_unpossed(processed_reviews, threads_num)
