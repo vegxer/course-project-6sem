@@ -1,0 +1,45 @@
+{
+  "count": 57361,
+  "plot": {
+    "oneStar": 9705,
+    "twoStar": 9073,
+    "threeStar": 12267,
+    "fourStar": 10166,
+    "fiveStar": 16150
+  },
+  "music": {
+    "oneStar": 8105,
+    "twoStar": 7617,
+    "threeStar": 12163,
+    "fourStar": 11394,
+    "fiveStar": 18082
+  },
+  "originality": {
+    "oneStar": 10175,
+    "twoStar": 9050,
+    "threeStar": 12160,
+    "fourStar": 10241,
+    "fiveStar": 15735
+  },
+  "spectacularity": {
+    "oneStar": 9238,
+    "twoStar": 8764,
+    "threeStar": 12258,
+    "fourStar": 10525,
+    "fiveStar": 16576
+  },
+  "actors": {
+    "oneStar": 8272,
+    "twoStar": 7467,
+    "threeStar": 11393,
+    "fourStar": 11099,
+    "fiveStar": 19130
+  },
+  "rating": {
+    "oneStar": 8775,
+    "twoStar": 9760,
+    "threeStar": 13158,
+    "fourStar": 10573,
+    "fiveStar": 15095
+  }
+}
