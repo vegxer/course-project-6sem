@@ -23,65 +23,50 @@ def num_to_text(num):
     return 'fiveStar'
 
 
-def get_statistics(path, save_path):
-    with open(path, "r", encoding="utf-8") as dataset:
-        reviews = json.load(dataset)
-    statistics = {}
-    statistics['count'] = 0
-    statistics['plot'] = {}
-    statistics['plot']['oneStar'] = 0
-    statistics['plot']['twoStar'] = 0
-    statistics['plot']['threeStar'] = 0
-    statistics['plot']['fourStar'] = 0
-    statistics['plot']['fiveStar'] = 0
+def get_statistics(y_train, y_test, save_path):
+    statisticsTrain = dict()
+    statisticsTrain['oneStar'] = 0
+    statisticsTrain['twoStar'] = 0
+    statisticsTrain['threeStar'] = 0
+    statisticsTrain['fourStar'] = 0
+    statisticsTrain['fiveStar'] = 0
 
-    statistics['music'] = {}
-    statistics['music']['oneStar'] = 0
-    statistics['music']['twoStar'] = 0
-    statistics['music']['threeStar'] = 0
-    statistics['music']['fourStar'] = 0
-    statistics['music']['fiveStar'] = 0
+    for y in y_train:
+        statisticsTrain[num_to_text(index_of_max(y) + 1)] += 1
 
-    statistics['originality'] = {}
-    statistics['originality']['oneStar'] = 0
-    statistics['originality']['twoStar'] = 0
-    statistics['originality']['threeStar'] = 0
-    statistics['originality']['fourStar'] = 0
-    statistics['originality']['fiveStar'] = 0
+    statisticsTest = dict()
+    statisticsTest['oneStar'] = 0
+    statisticsTest['twoStar'] = 0
+    statisticsTest['threeStar'] = 0
+    statisticsTest['fourStar'] = 0
+    statisticsTest['fiveStar'] = 0
 
-    statistics['spectacularity'] = {}
-    statistics['spectacularity']['oneStar'] = 0
-    statistics['spectacularity']['twoStar'] = 0
-    statistics['spectacularity']['threeStar'] = 0
-    statistics['spectacularity']['fourStar'] = 0
-    statistics['spectacularity']['fiveStar'] = 0
+    for y in y_test:
+        statisticsTest[num_to_text(index_of_max(y) + 1)] += 1
 
-    statistics['actors'] = {}
-    statistics['actors']['oneStar'] = 0
-    statistics['actors']['twoStar'] = 0
-    statistics['actors']['threeStar'] = 0
-    statistics['actors']['fourStar'] = 0
-    statistics['actors']['fiveStar'] = 0
-
-    statistics['rating'] = {}
-    statistics['rating']['oneStar'] = 0
-    statistics['rating']['twoStar'] = 0
-    statistics['rating']['threeStar'] = 0
-    statistics['rating']['fourStar'] = 0
-    statistics['rating']['fiveStar'] = 0
-
-    for review in reviews:
-        if review['plot'] is not None and review['music'] is not None and review['actors'] is not None and review['originality'] is not None and review['spectacularity'] is not None:
-            statistics['count'] += 1
-            try:
-                statistics['rating'][num_to_text(review['rating'])] += 1
-            except Exception:
-                print("err")
-            statistics['plot'][num_to_text(review['plot'])] += 1
-            statistics['music'][num_to_text(review['music'])] += 1
-            statistics['actors'][num_to_text(review['actors'])] += 1
-            statistics['originality'][num_to_text(review['originality'])] += 1
-            statistics['spectacularity'][num_to_text(review['spectacularity'])] += 1
+    train_len = len(y_train)
+    test_len = len(y_test)
+    statistics = dict()
+    statistics['oneStar'] = {
+        "train": statisticsTrain['oneStar'] / train_len,
+        "test": statisticsTest['oneStar'] / test_len
+    }
+    statistics['twoStar'] = {
+        "train": statisticsTrain['twoStar'] / train_len,
+        "test": statisticsTest['twoStar'] / test_len
+    }
+    statistics['threeStar'] = {
+        "train": statisticsTrain['threeStar'] / train_len,
+        "test": statisticsTest['threeStar'] / test_len
+    }
+    statistics['fourStar'] = {
+        "train": statisticsTrain['fourStar'] / train_len,
+        "test": statisticsTest['fourStar'] / test_len
+    }
+    statistics['fiveStar'] = {
+        "train": statisticsTrain['fiveStar'] / train_len,
+        "test": statisticsTest['fiveStar'] / test_len
+    }
 
     with open(save_path, "w", encoding="utf-8") as file:
         json.dump(statistics, file)
@@ -307,7 +292,7 @@ def load_dataset(path_to_numeric_dataset):
         for line in dataset:
             if line == '\n':
                 if not x:
-                    print("Ошибка чтения файла")
+                    print("Пососи долбоёб")
                 x = False
                 continue
             if x:

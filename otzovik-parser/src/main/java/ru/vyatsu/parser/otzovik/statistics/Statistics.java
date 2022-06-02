@@ -1,7 +1,6 @@
 package ru.vyatsu.parser.otzovik.statistics;
 
 public class Statistics {
-    public String type;
     public Integer moviesCount = 0;
     public ReviewText pluses = new ReviewText();
     public ReviewText minuses = new ReviewText();

@@ -17,29 +17,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OtzovikParser {
-    private static boolean endedTrain = true;
-    private static boolean endedTest = true;
+    private static boolean objectClosed = true;
     private static final Logger logger = LoggerFactory.getLogger(OtzovikParser.class);
     private static final String url = "https://otzovik.com/show_filter.php?cat_id=117&order=rate&f[r]=%d_&page=%d";
     private static Map<String,String> additionalEntries;
 
     public static void parse(int moviesCount, final int reviewsPerMovie, final int minimumReviewsPerMovie,
-                             final String trainOutputPath, final String trainDatasetStatisticsPath,
-                             final String testOutputPath, final String testDatasetStatisticsPath) throws IOException {
+                             final String outputPath, final String datasetStatisticsPath) throws IOException {
         additionalEntries = Map.of("referer", String.format("https://otzovik.com/show_filter.php?cat_id=117&order=date_desc&f[r]=%d_&page=", minimumReviewsPerMovie));
-        final Statistics trainStatistics = new Statistics();
-        trainStatistics.type = "train";
-        final Statistics testStatistics = new Statistics();
-        testStatistics.type = "test";
+        final Statistics statistics = new Statistics();
         Map<String, String> headers = readHeaders();
 
-        JsonWriter trainWriter = null;
-        JsonWriter testWriter = null;
+        JsonWriter writer = null;
         try {
-            trainWriter = new JsonWriter(new FileWriter(trainOutputPath));
-            trainWriter.beginArray();
-            testWriter = new JsonWriter(new FileWriter(testOutputPath));
-            testWriter.beginArray();
+            writer = new JsonWriter(new FileWriter(outputPath));
+            writer.beginArray();
             logger.debug(String.format("Парсинг стартовал. Примерное время ожидания %.2f - %.2f мин.",
                 0.75 * moviesCount * reviewsPerMovie / 60,
                 0.85 * moviesCount * reviewsPerMovie / 60)
@@ -59,13 +51,9 @@ public class OtzovikParser {
                 } catch (Exception e) {
                     ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
-                    if (!endedTrain) {
-                        trainWriter.endObject();
-                        endedTrain = true;
-                    }
-                    if (!endedTest) {
-                        testWriter.endObject();
-                        endedTest = true;
+                    if (!objectClosed) {
+                        writer.endObject();
+                        objectClosed = true;
                     }
                     ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     Thread.sleep(60000);
@@ -87,20 +75,14 @@ public class OtzovikParser {
                                 .get("href"),
                             headers,
                             reviewsPerMovie,
-                            trainWriter,
-                            testWriter,
-                            trainStatistics,
-                            testStatistics);
+                            writer,
+                            statistics);
                     } catch (Exception exc) {
                         ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                         logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
-                        if (!endedTrain) {
-                            trainWriter.endObject();
-                            endedTrain = true;
-                        }
-                        if (!endedTest) {
-                            testWriter.endObject();
-                            endedTest = true;
+                        if (!objectClosed) {
+                            writer.endObject();
+                            objectClosed = true;
                         }
                         ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                         Thread.sleep(60000);
@@ -112,19 +94,16 @@ public class OtzovikParser {
         } catch (Exception anyExc) {
             logger.error("При парсинге возникла ошибка!", anyExc);
         } finally {
-            closeWriter(trainWriter);
-            closeWriter(testWriter);
+            closeWriter(writer);
 
-            writeStatistics(trainStatistics, trainDatasetStatisticsPath);
-            writeStatistics(testStatistics, testDatasetStatisticsPath);
+            writeStatistics(statistics, datasetStatisticsPath);
 
             logger.debug("Парсинг закончен");
         }
     }
 
     private static void parseReviewsPage(final String url, Map<String, String> headers, int reviewsPerMovie,
-                                         final JsonWriter trainWriter, final JsonWriter testWriter,
-                                         final Statistics trainStatistics, final Statistics testStatistics) throws IOException, InterruptedException {
+                                         final JsonWriter writer, final Statistics statistics) throws IOException, InterruptedException {
         final String refererBase = "https://otzovik.com" + url;
         logger.debug(String.format("\tПарсинг страницы %s", refererBase));
         headers.put("referer", refererBase + "1/");
@@ -146,37 +125,25 @@ public class OtzovikParser {
             }
             reviewsPerMovie -= size;
             for (int i = 0; i < size; ++i) {
-                if (i % 2 == 0) {
-                    ++trainStatistics.moviesCount;
-                } else {
-                    ++testStatistics.moviesCount;
-                }
+                ++statistics.moviesCount;
 
                 logger.debug(String.format("\t\tПарсинг отзыва https://otzovik.com%s (%d)",
-                    url, trainStatistics.moviesCount + testStatistics.moviesCount));
+                    url, statistics.moviesCount));
                 try {
                     parseAndSaveReview(reviews
                             .get(i)
                             .attributes()
                             .get("href"),
                         headers,
-                        i % 2 == 0 ? trainWriter : testWriter,
-                        i % 2 == 0 ? trainStatistics : testStatistics);
+                        writer,
+                        statistics);
                 } catch (Exception exc) {
-                    if (i % 2 == 0) {
-                        --trainStatistics.moviesCount;
-                    } else {
-                        --testStatistics.moviesCount;
-                    }
+                    --statistics.moviesCount;
                     ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     logger.error("Ошибка при парсинге отзыва. Парсер уснул на 60 секунд. Смените прокси!");
-                    if (!endedTrain) {
-                        trainWriter.endObject();
-                        endedTrain = true;
-                    }
-                    if (!endedTest) {
-                        testWriter.endObject();
-                        endedTest = true;
+                    if (!objectClosed) {
+                        writer.endObject();
+                        objectClosed = true;
                     }
                     ((Runnable) Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation")).run();
                     Thread.sleep(60000);
@@ -198,11 +165,6 @@ public class OtzovikParser {
         Thread.sleep(600);
 
         jsonWriter.beginObject();
-        if ("train".equals(statistics.type)) {
-            endedTrain = false;
-        } else {
-            endedTest = false;
-        }
         jsonWriter.name("id").value(url.substring(url.indexOf('_') + 1, url.lastIndexOf('.')));
 
         final String reviewPlus = review.getElementsByClass("review-plus").text();
@@ -264,11 +226,7 @@ public class OtzovikParser {
         statistics.rating.incRating(rating);
 
         jsonWriter.endObject();
-        if ("train".equals(statistics.type)) {
-            endedTrain = true;
-        } else {
-            endedTest = true;
-        }
+        objectClosed = true;
     }
 
     private static void writeStatistics(final Statistics statistics, final String path) throws IOException {
